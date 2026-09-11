@@ -1,0 +1,19 @@
+{
+  "name": "restrocloud-print-agent",
+  "version": "0.1.0",
+  "description": "Agente Local de RestroCloud — puente entre la nube y las impresoras físicas de un restaurante (RF-103 Fase 2).",
+  "type": "module",
+  "bin": {
+    "restrocloud-print-agent": "./bin/restrocloud-print-agent.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "pair": "node bin/restrocloud-print-agent.js pair",
+    "run": "node bin/restrocloud-print-agent.js run",
+    "test": "node --test"
+  },
+  "license": "UNLICENSED",
+  "private": true
+}

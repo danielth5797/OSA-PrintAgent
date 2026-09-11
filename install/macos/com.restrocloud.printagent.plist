@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  RF-103 Fase 3 — arranque automático en macOS (launchd), mismo espíritu que
+  el modo kiosco de Chrome ya documentado para el tiquete de pago (RF-102).
+
+  Antes de instalarlo, reemplazá las DOS rutas marcadas más abajo:
+    - la ruta real de tu `node` (corré `which node` en una Terminal para verla)
+    - la ruta real donde instalaste esta carpeta RestroCloud-PrintAgent
+
+  Instalación (en una Terminal):
+    cp com.restrocloud.printagent.plist ~/Library/LaunchAgents/
+    launchctl load ~/Library/LaunchAgents/com.restrocloud.printagent.plist
+
+  Para detenerlo/desinstalarlo:
+    launchctl unload ~/Library/LaunchAgents/com.restrocloud.printagent.plist
+    rm ~/Library/LaunchAgents/com.restrocloud.printagent.plist
+
+  El registro queda en /tmp/restrocloud-print-agent.log (éxito) y
+  /tmp/restrocloud-print-agent.err.log (errores) — útil para diagnosticar sin
+  depender de la nube.
+-->
+<plist version="1.0">
+  <dict>
+    <key>Label</key>
+    <string>com.restrocloud.printagent</string>
+    <key>ProgramArguments</key>
+    <array>
+      <string>/usr/local/bin/node</string>
+      <!-- ⚠️ Reemplazá arriba por la salida real de `which node` en esta Mac -->
+      <string>/Users/TU-USUARIO/RestroCloud-PrintAgent/bin/restrocloud-print-agent.js</string>
+      <!-- ⚠️ Reemplazá arriba por la ruta real donde instalaste esta carpeta -->
+      <string>run</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>/tmp/restrocloud-print-agent.log</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/restrocloud-print-agent.err.log</string>
+  </dict>
+</plist>

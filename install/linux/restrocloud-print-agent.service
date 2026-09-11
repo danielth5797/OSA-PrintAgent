@@ -1,0 +1,32 @@
+# RF-103 Fase 3 — arranque automático en Linux (systemd, servicio de usuario).
+#
+# Antes de instalarlo, reemplazá las DOS rutas marcadas más abajo:
+#   - la ruta real de tu `node` (corré `which node` en una terminal para verla)
+#   - la ruta real donde instalaste esta carpeta RestroCloud-PrintAgent
+#
+# Instalación:
+#   mkdir -p ~/.config/systemd/user
+#   cp restrocloud-print-agent.service ~/.config/systemd/user/
+#   systemctl --user enable --now restrocloud-print-agent
+#   loginctl enable-linger $USER   # para que arranque sin necesitar sesión gráfica abierta
+#
+# Ver el registro en vivo:
+#   journalctl --user -u restrocloud-print-agent -f
+#
+# Detenerlo/desinstalarlo:
+#   systemctl --user disable --now restrocloud-print-agent
+#   rm ~/.config/systemd/user/restrocloud-print-agent.service
+
+[Unit]
+Description=Agente Local de impresión de RestroCloud
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/node /home/TU-USUARIO/RestroCloud-PrintAgent/bin/restrocloud-print-agent.js run
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target
