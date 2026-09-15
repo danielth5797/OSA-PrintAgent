@@ -1,7 +1,7 @@
 // RF-103 Fase 3 — diagnóstico local liviano (todavía sin la bandeja del
 // sistema/página HTTP que proponía el plan original — esto es el primer
 // escalón, útil desde ya por teléfono con soporte: "corré
-// restrocloud-print-agent status y decime qué dice").
+// osa-print-agent status y decime qué dice").
 
 import { loadConfig, configPath } from './config.js';
 import { agentFetch } from './apiClient.js';

@@ -6,29 +6,29 @@
 
   Antes de instalarlo, reemplazá las DOS rutas marcadas más abajo:
     - la ruta real de tu `node` (corré `which node` en una Terminal para verla)
-    - la ruta real donde instalaste esta carpeta RestroCloud-PrintAgent
+    - la ruta real donde instalaste esta carpeta OSA-PrintAgent
 
   Instalación (en una Terminal):
-    cp com.restrocloud.printagent.plist ~/Library/LaunchAgents/
-    launchctl load ~/Library/LaunchAgents/com.restrocloud.printagent.plist
+    cp com.osa.printagent.plist ~/Library/LaunchAgents/
+    launchctl load ~/Library/LaunchAgents/com.osa.printagent.plist
 
   Para detenerlo/desinstalarlo:
-    launchctl unload ~/Library/LaunchAgents/com.restrocloud.printagent.plist
-    rm ~/Library/LaunchAgents/com.restrocloud.printagent.plist
+    launchctl unload ~/Library/LaunchAgents/com.osa.printagent.plist
+    rm ~/Library/LaunchAgents/com.osa.printagent.plist
 
-  El registro queda en /tmp/restrocloud-print-agent.log (éxito) y
-  /tmp/restrocloud-print-agent.err.log (errores) — útil para diagnosticar sin
+  El registro queda en /tmp/osa-print-agent.log (éxito) y
+  /tmp/osa-print-agent.err.log (errores) — útil para diagnosticar sin
   depender de la nube.
 -->
 <plist version="1.0">
   <dict>
     <key>Label</key>
-    <string>com.restrocloud.printagent</string>
+    <string>com.osa.printagent</string>
     <key>ProgramArguments</key>
     <array>
       <string>/usr/local/bin/node</string>
       <!-- ⚠️ Reemplazá arriba por la salida real de `which node` en esta Mac -->
-      <string>/Users/TU-USUARIO/RestroCloud-PrintAgent/bin/restrocloud-print-agent.js</string>
+      <string>/Users/TU-USUARIO/OSA-PrintAgent/bin/osa-print-agent.js</string>
       <!-- ⚠️ Reemplazá arriba por la ruta real donde instalaste esta carpeta -->
       <string>run</string>
     </array>
@@ -37,8 +37,8 @@
     <key>KeepAlive</key>
     <true/>
     <key>StandardOutPath</key>
-    <string>/tmp/restrocloud-print-agent.log</string>
+    <string>/tmp/osa-print-agent.log</string>
     <key>StandardErrorPath</key>
-    <string>/tmp/restrocloud-print-agent.err.log</string>
+    <string>/tmp/osa-print-agent.err.log</string>
   </dict>
 </plist>

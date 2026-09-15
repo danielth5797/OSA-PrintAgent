@@ -1,7 +1,7 @@
-// RF-103 Fase 2 — envoltorio fetch mínimo hacia RestauCloud-API. Usa el
+// RF-103 Fase 2 — envoltorio fetch mínimo hacia OSA-API. Usa el
 // `fetch` nativo de Node (18+), sin dependencias. Todas las respuestas del
 // backend siguen el mismo sobre `{success, data, message}` que ya usa el
-// resto de RestroCloud.
+// resto de OSA.
 
 export class ApiError extends Error {
   constructor(message, status) {

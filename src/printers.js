@@ -1,6 +1,6 @@
 // RF-103 Fase 3 — descubrimiento de impresoras instaladas en esta PC, para
 // reportarlas al servidor (`POST /api/print-agents/heartbeat`) y que
-// aparezcan como opción en el selector de RestroCloud al crear una estación
+// aparezcan como opción en el selector de OSA al crear una estación
 // USB. Puramente informativo — el agente igual intenta imprimir a lo que la
 // estación le diga, exista o no en esta lista.
 //

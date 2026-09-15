@@ -1,8 +1,8 @@
 // RF-103 Fase 2 — pareo. Se corre UNA vez por instalación: canjea el código
-// de un solo uso que generó un admin desde RestroCloud (pestaña "Impresión"
+// de un solo uso que generó un admin desde OSA (pestaña "Impresión"
 // de Centro de Sincronización → "Vincular agente") por una API key durable,
 // que se guarda localmente para siempre (hasta que se elimine el agente
-// desde RestroCloud).
+// desde OSA).
 
 import { apiFetch } from './apiClient.js';
 import { saveConfig, configPath } from './config.js';

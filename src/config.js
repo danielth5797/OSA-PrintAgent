@@ -1,15 +1,15 @@
 // RF-103 Fase 2 — configuración local del agente, guardada en
-// ~/.restrocloud-print-agent/config.json. Solo tres campos: a qué servidor
+// ~/.osa-print-agent/config.json. Solo tres campos: a qué servidor
 // habla, y las credenciales que recibió UNA vez al parearse (POST
 // /api/print-agents/activate). El agente nunca vuelve a pedir el código de
 // pareo — una vez pareado, usa esta API key para siempre (hasta que un admin
-// lo elimine desde RestroCloud).
+// lo elimine desde OSA).
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 
-const CONFIG_DIR = join(homedir(), '.restrocloud-print-agent');
+const CONFIG_DIR = join(homedir(), '.osa-print-agent');
 const CONFIG_PATH = join(CONFIG_DIR, 'config.json');
 
 export function loadConfig() {

@@ -1,10 +1,10 @@
-# Instalación del Agente Local de RestroCloud
+# Instalación del Agente Local de OSA
 
 Guía paso a paso para instalar y dejar corriendo el Agente Local en la PC de
 un restaurante — necesario para imprimir comandas en impresoras **USB**
 (siempre) o de **red** cuando la sucursal está desplegada **en la nube**
 (el modo por defecto). Ver `README.md` para el detalle de arquitectura y
-`RestauCloud-Web/.claude/plans/impresion-por-estaciones.md` para el plan
+`OSA-Web/.claude/plans/impresion-por-estaciones.md` para el plan
 completo (RF-103).
 
 **Un solo agente por local** — instalalo en UNA PC del restaurante que vaya a
@@ -15,11 +15,11 @@ puente hacia todas las impresoras de ese local.
 
 ## Antes de empezar
 
-- ¿Ya tenés una **estación de impresión** creada en RestroCloud para esta
+- ¿Ya tenés una **estación de impresión** creada en OSA para esta
   sucursal? Si no, hacelo primero desde **Centro de Sincronización → pestaña
   "Impresión"** — el agente necesita algo a qué imprimir.
 - Necesitás que un administrador de la sucursal (rol Administrador o Gerente)
-  tenga la sesión abierta en RestroCloud para generar el código de pareo del
+  tenga la sesión abierta en OSA para generar el código de pareo del
   paso 3.
 - ⚠️ **Estado real de esta versión** (para no llevarte una sorpresa): la
   impresión de red y USB en macOS/Linux ya se probaron en vivo contra el
@@ -54,9 +54,9 @@ Tiene que mostrar `v18` o más.
 
 ## Paso 2 — Copiar el Agente Local a esa PC
 
-Copiá la carpeta completa `RestroCloud-PrintAgent` a esa PC — por ejemplo a
-`C:\RestroCloud\RestroCloud-PrintAgent` en Windows, o
-`~/RestroCloud-PrintAgent` en Mac/Linux. **Anotá esa ruta** — la vas a
+Copiá la carpeta completa `OSA-PrintAgent` a esa PC — por ejemplo a
+`C:\OSA\OSA-PrintAgent` en Windows, o
+`~/OSA-PrintAgent` en Mac/Linux. **Anotá esa ruta** — la vas a
 necesitar en el Paso 6.
 
 Abrí una terminal parada en esa carpeta e instalá (no hay nada real que
@@ -66,9 +66,9 @@ descargar, pero corré esto igual):
 npm install
 ```
 
-## Paso 3 — Generar el código de pareo (lo hace un administrador, desde RestroCloud)
+## Paso 3 — Generar el código de pareo (lo hace un administrador, desde OSA)
 
-1. Entrá a RestroCloud con una cuenta de Administrador o Gerente.
+1. Entrá a OSA con una cuenta de Administrador o Gerente.
 2. Andá a **Centro de Sincronización → pestaña "Impresión"**.
 3. Elegí la sucursal correcta arriba.
 4. En "Agentes locales" → **"Vincular agente"**.
@@ -82,7 +82,7 @@ De vuelta en la terminal de la PC del restaurante, parado en la carpeta del
 agente:
 
 ```
-node bin/restrocloud-print-agent.js pair --server https://TU-RESTROCLOUD.APP --code XXXX-XXXX-XXXX-XXXX
+node bin/osa-print-agent.js pair --server https://TU-OSA.APP --code XXXX-XXXX-XXXX-XXXX
 ```
 
 (Si no le pasás `--server`/`--code`, te los pregunta uno por uno.)
@@ -112,7 +112,7 @@ USB sin que el driver los "traduzca" mal, esa impresora tiene que estar
 3. Pestaña **"Compartir"** → tildá **"Compartir esta impresora"** → ponele un
    nombre corto sin espacios (ej. `Cocina1`) → Aplicar.
 4. Ese nombre (`Cocina1` en el ejemplo) es lo que tenés que poner como
-   **"Impresora del agente"** al crear la estación USB en RestroCloud — el
+   **"Impresora del agente"** al crear la estación USB en OSA — el
    agente corre `copy /b <archivo> \\localhost\Cocina1` para imprimir.
 
 ## Paso 6 — Probar que imprime de verdad
@@ -120,12 +120,12 @@ USB sin que el driver los "traduzca" mal, esa impresora tiene que estar
 Con el agente ya pareado, corré:
 
 ```
-node bin/restrocloud-print-agent.js run
+node bin/osa-print-agent.js run
 ```
 
 Dejalo corriendo (vas a ver un registro tipo `[fecha] Agente Local de
-RestroCloud — conectado a ...` cada 5 segundos sondeando). Con esto
-corriendo, desde RestroCloud:
+OSA — conectado a ...` cada 5 segundos sondeando). Con esto
+corriendo, desde OSA:
 
 1. Andá a Centro de Sincronización → "Impresión".
 2. Buscá la estación (o creala si todavía no existe, indicando este agente y
@@ -152,7 +152,7 @@ La forma más simple, sin necesitar permisos de administrador:
 1. Presioná **Win + R**, escribí `shell:startup` y Enter — se abre la
    carpeta de inicio de tu usuario.
 2. Copiá ahí el archivo `install/windows/iniciar-agente.bat` de esta carpeta.
-3. Abrilo con el Bloc de notas y cambiá la ruta `C:\RestroCloud\...` de
+3. Abrilo con el Bloc de notas y cambiá la ruta `C:\OSA\...` de
    adentro por la ruta real donde copiaste el agente en el Paso 2.
 4. Listo — la próxima vez que se inicie sesión en Windows, se abre una
    ventana con el agente corriendo. Minimizala (no la cierres).
@@ -161,30 +161,30 @@ La forma más simple, sin necesitar permisos de administrador:
 
 Usa `launchd` (el mecanismo nativo de macOS para "esto corre siempre"):
 
-1. Abrí `install/macos/com.restrocloud.printagent.plist` con un editor de
+1. Abrí `install/macos/com.osa.printagent.plist` con un editor de
    texto y reemplazá las dos rutas marcadas con ⚠️ (la de `node`, que se
    averigua corriendo `which node` en una Terminal, y la de esta carpeta).
 2. En una Terminal:
    ```
-   cp install/macos/com.restrocloud.printagent.plist ~/Library/LaunchAgents/
-   launchctl load ~/Library/LaunchAgents/com.restrocloud.printagent.plist
+   cp install/macos/com.osa.printagent.plist ~/Library/LaunchAgents/
+   launchctl load ~/Library/LaunchAgents/com.osa.printagent.plist
    ```
-3. El registro queda en `/tmp/restrocloud-print-agent.log` (y
+3. El registro queda en `/tmp/osa-print-agent.log` (y
    `.err.log` para errores).
 
 ### Linux
 
 Usa `systemd` (servicio de usuario):
 
-1. Editá `install/linux/restrocloud-print-agent.service` — reemplazá las dos
+1. Editá `install/linux/osa-print-agent.service` — reemplazá las dos
    rutas marcadas (la de `node`, `which node`, y la de esta carpeta).
 2. ```
    mkdir -p ~/.config/systemd/user
-   cp install/linux/restrocloud-print-agent.service ~/.config/systemd/user/
-   systemctl --user enable --now restrocloud-print-agent
+   cp install/linux/osa-print-agent.service ~/.config/systemd/user/
+   systemctl --user enable --now osa-print-agent
    loginctl enable-linger $USER
    ```
-3. Ver el registro en vivo: `journalctl --user -u restrocloud-print-agent -f`
+3. Ver el registro en vivo: `journalctl --user -u osa-print-agent -f`
 
 ## Paso 8 — Confirmar que quedó bien
 
@@ -192,7 +192,7 @@ En cualquier momento, para chequear el estado sin tener que leer el registro
 completo:
 
 ```
-node bin/restrocloud-print-agent.js status
+node bin/osa-print-agent.js status
 ```
 
 Te dice si está pareado, si el servidor lo sigue reconociendo, cuándo lo vio
@@ -205,8 +205,8 @@ por última vez, y qué impresoras detecta en esa PC ahora mismo.
 | Síntoma | Causa probable |
 |---|---|
 | `status` dice "No se pudo contactar al servidor" | Sin internet, o la URL del servidor está mal escrita en el pareo. |
-| El agente corre pero las comandas nunca se imprimen | Revisá en RestroCloud → Centro de Sincronización → Impresión que la estación tenga este agente asignado, y que tenga alguna categoría de menú asignada (si no, esa comanda nunca se generó). |
-| USB en Windows: `El sistema no puede encontrar la ruta especificada` | El nombre de "Impresora del agente" en RestroCloud no coincide EXACTO con el nombre que le pusiste al compartir la impresora en Windows (Paso 5). |
+| El agente corre pero las comandas nunca se imprimen | Revisá en OSA → Centro de Sincronización → Impresión que la estación tenga este agente asignado, y que tenga alguna categoría de menú asignada (si no, esa comanda nunca se generó). |
+| USB en Windows: `El sistema no puede encontrar la ruta especificada` | El nombre de "Impresora del agente" en OSA no coincide EXACTO con el nombre que le pusiste al compartir la impresora en Windows (Paso 5). |
 | USB en Mac/Linux: `lp: No such destination` | La impresora no está agregada en el sistema — Preferencias del Sistema → Impresoras y escáneres, agregala primero ahí. |
-| El código de pareo dice "inválido o vencido" | Duró más de 15 minutos, o ya se usó una vez — generá uno nuevo desde RestroCloud. |
-| Quiero reinstalar en otra PC | Simplemente repetí esta guía en la PC nueva con un código de pareo nuevo — desde RestroCloud podés eliminar el agente viejo (Centro de Sincronización → Impresión → Agentes locales → ícono de basurero). |
+| El código de pareo dice "inválido o vencido" | Duró más de 15 minutos, o ya se usó una vez — generá uno nuevo desde OSA. |
+| Quiero reinstalar en otra PC | Simplemente repetí esta guía en la PC nueva con un código de pareo nuevo — desde OSA podés eliminar el agente viejo (Centro de Sincronización → Impresión → Agentes locales → ícono de basurero). |

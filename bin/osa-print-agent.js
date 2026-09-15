@@ -1,10 +1,10 @@
 #!/usr/bin/env node
-// RF-103 Fases 2-3 — CLI del Agente Local de RestroCloud. Sin dependencias
+// RF-103 Fases 2-3 — CLI del Agente Local de OSA. Sin dependencias
 // externas a propósito (nada que instalar aparte de Node) — tres comandos:
 //
-//   restrocloud-print-agent pair --server https://tu-restrocloud.app --code XXXX-XXXX-XXXX-XXXX
-//   restrocloud-print-agent run
-//   restrocloud-print-agent status
+//   osa-print-agent pair --server https://tu-osa.app --code XXXX-XXXX-XXXX-XXXX
+//   osa-print-agent run
+//   osa-print-agent status
 //
 // `pair` se corre una sola vez por instalación. `run` es el proceso que debe
 // quedar corriendo siempre — ver `install/<sistema-operativo>/` para
@@ -31,13 +31,13 @@ async function prompt(question) {
 }
 
 async function cmdPair() {
-  const serverUrl = arg('--server') ?? (await prompt('URL del servidor RestroCloud (ej. https://miempresa.restrocloud.app): '));
+  const serverUrl = arg('--server') ?? (await prompt('URL del servidor OSA (ej. https://miempresa.osa.app): '));
   const code = arg('--code') ?? (await prompt('Código de pareo (te lo dio un administrador): '));
   console.log('Pareando…');
   try {
     const result = await pair(serverUrl.replace(/\/$/, ''), code);
     console.log(`✓ Pareado como "${result.agentId}". Configuración guardada en ${result.configPath}`);
-    console.log('Ahora corré: restrocloud-print-agent run');
+    console.log('Ahora corré: osa-print-agent run');
   } catch (err) {
     console.error('✗ No se pudo parear:', err.message);
     process.exitCode = 1;
@@ -47,7 +47,7 @@ async function cmdPair() {
 function cmdRun() {
   const config = loadConfig();
   if (!config) {
-    console.error('Este agente todavía no está pareado. Corré primero: restrocloud-print-agent pair');
+    console.error('Este agente todavía no está pareado. Corré primero: osa-print-agent pair');
     process.exitCode = 1;
     return;
   }
@@ -69,7 +69,7 @@ async function cmdStatus() {
   console.log(`Servidor: ${result.serverUrl}`);
   if (result.reachable) {
     console.log(`✓ Pareado como "${result.agentName}" (${result.agentId})`);
-    console.log(`  Activo: ${result.isActive ? 'sí' : 'NO — un admin lo desactivó desde RestroCloud'}`);
+    console.log(`  Activo: ${result.isActive ? 'sí' : 'NO — un admin lo desactivó desde OSA'}`);
     console.log(`  Última vez visto por el servidor: ${result.lastSeenAt ?? 'nunca'}`);
   } else {
     console.log(`✗ No se pudo contactar al servidor: ${result.error}`);
@@ -87,7 +87,7 @@ if (command === 'pair') {
   await cmdStatus();
 } else {
   console.log('Uso:');
-  console.log('  restrocloud-print-agent pair --server <url> --code <código>');
-  console.log('  restrocloud-print-agent run');
-  console.log('  restrocloud-print-agent status');
+  console.log('  osa-print-agent pair --server <url> --code <código>');
+  console.log('  osa-print-agent run');
+  console.log('  osa-print-agent status');
 }

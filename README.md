@@ -1,18 +1,18 @@
-# RestroCloud Print Agent
+# OSA Print Agent
 
-Agente Local de impresión de RestroCloud — el puente entre la nube y las
+Agente Local de impresión de OSA — el puente entre la nube y las
 impresoras físicas de un restaurante (**RF-103 Fase 2**). Repo hermano de
-`RestauCloud-Web`/`RestauCloud-API`, mismo patrón que `RestroCloud-Platform`
+`OSA-Web`/`OSA-API`, mismo patrón que `OSA-Platform`
 (RF-94) fue un repo nuevo cuando hizo falta.
 
 Ver el plan de arquitectura completo en
-`RestauCloud-Web/.claude/plans/impresion-por-estaciones.md`.
+`OSA-Web/.claude/plans/impresion-por-estaciones.md`.
 
 ## Qué hace
 
 Corre en una PC del restaurante siempre encendida (típicamente la misma caja
 principal — "un agente por local", decisión del usuario). Cada pocos segundos
-le pregunta a RestroCloud si hay comandas esperando, las imprime (por red o
+le pregunta a OSA si hay comandas esperando, las imprime (por red o
 USB) y le avisa el resultado real. Nunca ve menú ni precios — solo recibe
 bytes ESC/POS ya armados por el servidor y un destino.
 
@@ -34,14 +34,14 @@ Resumen rápido para quien ya sabe lo que hace:
 
 ```bash
 npm install                                                          # sin dependencias externas reales
-node bin/restrocloud-print-agent.js pair --server <url> --code <código>
-node bin/restrocloud-print-agent.js run                              # queda corriendo, Ctrl+C para detener
-node bin/restrocloud-print-agent.js status                           # diagnóstico rápido, sin efectos secundarios
+node bin/osa-print-agent.js pair --server <url> --code <código>
+node bin/osa-print-agent.js run                              # queda corriendo, Ctrl+C para detener
+node bin/osa-print-agent.js status                           # diagnóstico rápido, sin efectos secundarios
 ```
 
 Plantillas de arranque automático por sistema operativo en `install/`
-(`windows/iniciar-agente.bat`, `macos/com.restrocloud.printagent.plist`,
-`linux/restrocloud-print-agent.service`) — instrucciones de cada una en
+(`windows/iniciar-agente.bat`, `macos/com.osa.printagent.plist`,
+`linux/osa-print-agent.service`) — instrucciones de cada una en
 `INSTALL.md`.
 
 ## Pruebas
@@ -99,7 +99,7 @@ de fallar la suite entera.
 - ❌ Sin empaquetar como ejecutable único (`pkg`/Node SEA) — hoy se corre
   desde el código fuente con Node instalado. Sigue pendiente.
 - ✅ Alerta de "estación sin conexión" en el Centro de Notificaciones de
-  RestroCloud (`PRINTER_STATION_OFFLINE`, barrido perezoso cada 10 min sin
+  OSA (`PRINTER_STATION_OFFLINE`, barrido perezoso cada 10 min sin
   respuesta) — verificada en vivo con `curl` (disparo real + dedup contra
   lecturas repetidas) y con Playwright (campanita, ícono/color correctos,
   clic navega a `/sincronizacion?tab=printing` con la pestaña ya

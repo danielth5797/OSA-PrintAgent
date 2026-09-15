@@ -12,11 +12,11 @@ REM   1. Presioná Win+R, escribí "shell:startup" y Enter — se abre el
 REM      Explorador en la carpeta de inicio de TU usuario.
 REM   2. Copiá este archivo ahí.
 REM   3. Abrilo con el Bloc de notas y cambiá la ruta de abajo por donde
-REM      realmente instalaste RestroCloud-PrintAgent en esta PC.
+REM      realmente instalaste OSA-PrintAgent en esta PC.
 REM
 REM La ventana de consola queda abierta — es la forma más simple de ver que
 REM está corriendo y su registro en vivo. Minimizala, no la cierres.
 
-cd /d "C:\RestroCloud\RestroCloud-PrintAgent"
-node bin\restrocloud-print-agent.js run
+cd /d "C:\OSA\OSA-PrintAgent"
+node bin\osa-print-agent.js run
 pause

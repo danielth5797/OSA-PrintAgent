@@ -1,6 +1,6 @@
 // RF-103 Fases 2-3 — entrega real de los bytes ESC/POS ya armados por el
 // servidor (el agente nunca los arma — ver `core/escpos.ts` en
-// RestauCloud-API). Dos caminos, según la estación:
+// OSA-API). Dos caminos, según la estación:
 //   - `NETWORK`: socket TCP crudo directo a `host:port` (idéntico en espíritu
 //     a `sendToNetworkPrinter` del backend — un agente puede recibir
 //     estaciones de red también, ej. detrás de un firewall que la API en la
@@ -53,7 +53,7 @@ function printToNetwork(host, port, payload) {
 }
 
 async function writeTempFile(payload, ext) {
-  const tmpFile = join(tmpdir(), `restrocloud-print-${randomUUID()}.${ext}`);
+  const tmpFile = join(tmpdir(), `osa-print-${randomUUID()}.${ext}`);
   await writeFile(tmpFile, payload);
   return tmpFile;
 }
@@ -93,7 +93,7 @@ export async function printJob(station, payload) {
     return printToNetwork(station.host, station.port ?? 9100, payload);
   }
   if (!station.agentPrinterId) {
-    throw new Error('Esta estación USB todavía no tiene una impresora local asignada en RestroCloud.');
+    throw new Error('Esta estación USB todavía no tiene una impresora local asignada en OSA.');
   }
   return printToUsb(station.agentPrinterId, payload);
 }

@@ -1,13 +1,13 @@
 // RF-103 Fase 2 — el bucle real del Agente Local:
 //   1. Sondea trabajos pendientes cada POLL_INTERVAL_MS (mismo criterio
-//      pragmático de polling ya usado en toda la app RestroCloud — Cocina
+//      pragmático de polling ya usado en toda la app OSA — Cocina
 //      8s, campanita 20s — nada de WebSocket todavía).
 //   2. Por cada trabajo: decodifica el payload ESC/POS (base64→bytes) e
 //      intenta imprimirlo (red o USB, según la estación) — SIEMPRE reporta
 //      el resultado real al servidor, éxito o error, nunca se lo guarda.
 //   3. Cada HEARTBEAT_INTERVAL_MS (más espaciado — esto casi no cambia)
 //      reporta qué impresoras ve instaladas, para llenar el selector de
-//      RestroCloud.
+//      OSA.
 //
 // El agente es deliberadamente "tonto": nunca arma un documento, nunca ve
 // menú/precios — solo recibe bytes ya listos + a dónde mandarlos.
@@ -58,7 +58,7 @@ async function heartbeatOnce(serverUrl, apiKey) {
 
 /** Corre para siempre (hasta Ctrl+C). `onTick` es un hook opcional para tests/verificación (recibe cuántos trabajos se procesaron en cada sondeo). */
 export function runAgent({ serverUrl, apiKey }, { onTick, signal } = {}) {
-  log(`Agente Local de RestroCloud — conectado a ${serverUrl}`);
+  log(`Agente Local de OSA — conectado a ${serverUrl}`);
 
   let stopped = false;
   const stop = () => {

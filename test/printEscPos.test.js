@@ -30,7 +30,7 @@ import { printJob } from '../src/printEscPos.js';
 
 const execFileAsync = promisify(execFile);
 
-/** Levanta un servidor TCP real en un puerto libre; devuelve el puerto y una promesa que resuelve con TODOS los bytes recibidos en la primera conexión. Cierra el servidor solo DESPUÉS de que esa promesa resuelva — cerrarlo antes descarta la conexión ya aceptada pero aún no entregada al callback de `'connection'` (bug real encontrado escribiendo la prueba equivalente en RestauCloud-API, ver `project_printer_station_routing.md`). */
+/** Levanta un servidor TCP real en un puerto libre; devuelve el puerto y una promesa que resuelve con TODOS los bytes recibidos en la primera conexión. Cierra el servidor solo DESPUÉS de que esa promesa resuelva — cerrarlo antes descarta la conexión ya aceptada pero aún no entregada al callback de `'connection'` (bug real encontrado escribiendo la prueba equivalente en OSA-API, ver `project_printer_station_routing.md`). */
 function startFakePrinter() {
   const chunks = [];
   let resolveReceived;
@@ -78,7 +78,7 @@ describe('printJob — estación NETWORK, contra un TCP real', () => {
 });
 
 describe('printJob — estación USB (macOS/Linux), contra una cola CUPS real', () => {
-  const QUEUE_NAME = 'restrocloud-print-agent-test-queue';
+  const QUEUE_NAME = 'osa-print-agent-test-queue';
   let cupsAvailable = false;
 
   test('detecta si CUPS/lpadmin está disponible en este sistema (se salta con gracia si no)', async (t) => {
