@@ -76,6 +76,8 @@ async function cmdStatus() {
   }
   console.log(`Impresoras detectadas en esta PC: ${result.localPrinters.length}`);
   for (const p of result.localPrinters) console.log(`  - ${p.name}`);
+  console.log(`Puertos seriales detectados en esta PC: ${result.localSerialPorts.length}`);
+  for (const p of result.localSerialPorts) console.log(`  - ${p.name}`);
 }
 
 const command = process.argv[2];

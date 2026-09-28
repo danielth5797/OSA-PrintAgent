@@ -6,13 +6,14 @@
 import { loadConfig, configPath } from './config.js';
 import { agentFetch } from './apiClient.js';
 import { listPrinters } from './printers.js';
+import { listSerialPorts } from './serial.js';
 
 export async function status() {
   const config = loadConfig();
   if (!config) {
     return { paired: false, message: `Sin parear todavía. No existe ${configPath()}.` };
   }
-  const printers = await listPrinters();
+  const [printers, serialPorts] = await Promise.all([listPrinters(), listSerialPorts()]);
   try {
     const agent = await agentFetch(config.serverUrl, config.apiKey, '/api/print-agents/me');
     return {
@@ -24,6 +25,7 @@ export async function status() {
       isActive: agent.isActive,
       lastSeenAt: agent.lastSeenAt,
       localPrinters: printers,
+      localSerialPorts: serialPorts,
     };
   } catch (err) {
     return {
@@ -32,6 +34,7 @@ export async function status() {
       serverUrl: config.serverUrl,
       error: err.message,
       localPrinters: printers,
+      localSerialPorts: serialPorts,
     };
   }
 }

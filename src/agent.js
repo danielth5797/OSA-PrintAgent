@@ -15,6 +15,7 @@
 import { agentFetch } from './apiClient.js';
 import { printJob } from './printEscPos.js';
 import { listPrinters } from './printers.js';
+import { sendToSerialPort, listSerialPorts } from './serial.js';
 
 const POLL_INTERVAL_MS = 5000;
 const HEARTBEAT_INTERVAL_MS = 60000;
@@ -30,7 +31,17 @@ async function pollOnce(serverUrl, apiKey) {
   for (const job of jobs) {
     const payload = Buffer.from(job.payloadBase64, 'base64');
     try {
-      await printJob(job.station, payload);
+      // Cajón USB standalone: se le escribe directo al puerto serial (el
+      // sistema operativo no lo ve como una impresora); todo lo demás
+      // (incluido un cajón colgado de una impresora por RJ11) sigue el
+      // camino normal de `printJob`, sin distinción — el pulso ESC/POS ya
+      // viaja igual que cualquier otro documento por esa impresora.
+      if (job.station.deviceKind === 'CASH_DRAWER') {
+        if (!job.station.agentPrinterId) throw new Error('Este cajón todavía no tiene un puerto serial asignado en OSA.');
+        await sendToSerialPort(job.station.agentPrinterId, payload);
+      } else {
+        await printJob(job.station, payload);
+      }
       log(`✓ impreso — estación "${job.station.name}"`);
       await agentFetch(serverUrl, apiKey, `/api/print-agents/jobs/${job.id}/result`, {
         method: 'POST',
@@ -48,12 +59,12 @@ async function pollOnce(serverUrl, apiKey) {
 }
 
 async function heartbeatOnce(serverUrl, apiKey) {
-  const printers = await listPrinters();
+  const [printers, serialPorts] = await Promise.all([listPrinters(), listSerialPorts()]);
   await agentFetch(serverUrl, apiKey, '/api/print-agents/heartbeat', {
     method: 'POST',
-    body: JSON.stringify({ printers }),
+    body: JSON.stringify({ printers, serialPorts }),
   });
-  log(`latido enviado — ${printers.length} impresora(s) detectada(s) localmente`);
+  log(`latido enviado — ${printers.length} impresora(s) y ${serialPorts.length} puerto(s) serial(es) detectados localmente`);
 }
 
 /** Corre para siempre (hasta Ctrl+C). `onTick` es un hook opcional para tests/verificación (recibe cuántos trabajos se procesaron en cada sondeo). */

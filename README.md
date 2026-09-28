@@ -20,9 +20,28 @@ Necesario quándo:
 - Cualquier impresora **USB** (siempre, sea la sucursal on-premise o nube).
 - Cualquier impresora de **red** en una sucursal desplegada **en la nube**
   (por defecto) — la API remota no puede alcanzar la LAN del restaurante.
+- Cualquier **cajón de dinero USB standalone** (`deviceKind: CASH_DRAWER`,
+  sin impresora de por medio — ver abajo).
 
 **No** hace falta si la sucursal es on-premise (la API ya corre en su LAN) y
 todas sus impresoras son de red — ahí el backend imprime directo.
+
+## Cajón de dinero
+
+Dos escenarios, ambos cubiertos:
+
+- **Colgado de una impresora** (RJ11/RJ12, el caso más común): el pulso de
+  apertura ESC/POS viaja por el mismo transporte que ya usa esa impresora
+  (red o USB) — `printJob(station, payload)` es agnóstico al contenido, no
+  necesita saber que es un cajón. **Cero cambios en este agente.**
+- **Cajón USB standalone** (`deviceKind: 'CASH_DRAWER'` en el trabajo que
+  reporta `GET /api/print-agents/jobs`): el agente le escribe directo al
+  puerto serial (`src/serial.js`) en vez de mandarlo a una cola de
+  impresión — macOS/Linux escriben al archivo de dispositivo (`fs.writeFile`
+  al puerto, sin librería nueva); Windows usa
+  `System.IO.Ports.SerialPort` vía PowerShell, mismo patrón `execFile`
+  ya usado para `Get-Printer`. **Deliberadamente sin `serialport` (npm)** —
+  mantiene la política de cero dependencias externas de este repo.
 
 ## Instalación
 
@@ -106,3 +125,14 @@ de fallar la suite entera.
   seleccionada) — cero errores de consola.
 - ❌ Sin bandeja del sistema (system tray) real ni endurecimiento de
   reintento/backoff más allá del reintento simple ya existente — pendiente.
+- ✅ Cajón de dinero (`src/serial.js`) — el escenario "colgado de una
+  impresora" reusa el transporte ya verificado arriba, sin cambios. El
+  escenario "cajón USB standalone" está **verificado de punta a punta contra
+  un archivo de dispositivo real** en macOS/Linux (`test/serial.test.js`,
+  entrega byte-por-byte idéntica) más, del lado de OSA-API, verificado en
+  vivo con un socket TCP real (backend → agente → estación de red, comando
+  `ESC p 00 19 FA` byte-exacto) y con un pago real en efectivo disparando
+  ambos — cajón + tiquete de pago — automáticamente. **Sin cajón USB real ni
+  PC Windows disponibles en esta sesión** — el camino Windows
+  (`System.IO.Ports.SerialPort` vía PowerShell) queda sin ninguna
+  verificación, mismo estado que el resto del USB de Windows arriba.
