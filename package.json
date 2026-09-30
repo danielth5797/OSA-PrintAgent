@@ -12,8 +12,15 @@
   "scripts": {
     "pair": "node bin/osa-print-agent.js pair",
     "run": "node bin/osa-print-agent.js run",
-    "test": "node --test"
+    "test": "node --test",
+    "build:mac": "./scripts/build-mac.sh",
+    "build:win": "./scripts/build-win.sh",
+    "build:dist": "./scripts/build-dist.sh"
   },
   "license": "UNLICENSED",
-  "private": true
+  "private": true,
+  "devDependencies": {
+    "esbuild": "^0.28.2",
+    "postject": "^1.0.0-alpha.6"
+  }
 }
