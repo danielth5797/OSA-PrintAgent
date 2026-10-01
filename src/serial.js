@@ -29,6 +29,11 @@ import { randomUUID } from 'node:crypto';
 
 const execFileAsync = promisify(execFile);
 const DEFAULT_BAUD_RATE = 9600;
+// Auditoría (2026-10-01): mismo riesgo de `printEscPos.js` — sin esto, escribir
+// a un puerto serial desconectado/sin flow control, o un script de PowerShell
+// que nunca vuelve, cuelga el `await` para siempre y congela el sondeo
+// completo del agente (ver `src/timeout.js`).
+const SERIAL_TIMEOUT_MS = 10000;
 
 async function listSerialPortsUnix() {
   try {
@@ -70,8 +75,11 @@ export async function listSerialPorts() {
 async function sendToSerialPortUnix(devicePath, payload) {
   // El puerto serial en macOS/Linux ES un archivo de dispositivo real —
   // escribirle es una escritura de archivo normal, sin abrir/cerrar una
-  // "conexión" aparte.
-  await writeFile(devicePath, payload);
+  // "conexión" aparte. `signal`: si el dispositivo no está listo para recibir
+  // (sin flow control, desconectado), la escritura puede quedarse esperando
+  // para siempre — Node no puede matar de verdad una escritura nativa ya en
+  // curso, pero el `AbortSignal` sí garantiza que ESTE `await` se libere.
+  await writeFile(devicePath, payload, { signal: AbortSignal.timeout(SERIAL_TIMEOUT_MS) });
 }
 
 async function sendToSerialPortWindows(devicePath, payload, baudRate) {
@@ -86,7 +94,7 @@ async function sendToSerialPortWindows(devicePath, payload, baudRate) {
       'Start-Sleep -Milliseconds 200',
       '$port.Close()',
     ].join('; ');
-    await execFileAsync('powershell', ['-NoProfile', '-Command', script]);
+    await execFileAsync('powershell', ['-NoProfile', '-Command', script], { timeout: SERIAL_TIMEOUT_MS });
   } finally {
     await unlink(tmpFile).catch(() => {});
   }
