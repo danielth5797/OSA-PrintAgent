@@ -32,6 +32,14 @@ import { randomUUID } from 'node:crypto';
 
 const execFileAsync = promisify(execFile);
 const NETWORK_TIMEOUT_MS = 5000;
+// Auditoría (2026-10-01): a diferencia del camino de red (timeout propio desde
+// el principio), `lp`/`copy` no tenían ningún límite — si la cola de CUPS
+// está pausada o la impresora compartida de Windows no responde, el comando
+// nunca vuelve y el `await` de `pollOnce` (agent.js) se queda colgado para
+// siempre, congelando el sondeo de TODO ese agente (ver `src/timeout.js`).
+// `execFile`'s propio `timeout` mata el proceso (SIGTERM) si se excede — no
+// es solo "dejar de esperar", el hijo realmente se termina.
+const USB_TIMEOUT_MS = 10000;
 
 function printToNetwork(host, port, payload) {
   return new Promise((resolve, reject) => {
@@ -62,7 +70,7 @@ async function printToUsbUnix(printerId, payload) {
   const tmpFile = await writeTempFile(payload, 'bin');
   try {
     // `-o raw`: sin pasar por ningún driver/traductor de CUPS — los bytes ESC/POS van tal cual.
-    await execFileAsync('lp', ['-d', printerId, '-o', 'raw', tmpFile]);
+    await execFileAsync('lp', ['-d', printerId, '-o', 'raw', tmpFile], { timeout: USB_TIMEOUT_MS });
   } finally {
     await unlink(tmpFile).catch(() => {});
   }
@@ -74,7 +82,7 @@ async function printToUsbWindows(printerId, payload) {
     // `/b` = copia binaria (sin traducción de fin de línea, crítico para ESC/POS crudo).
     // `\\localhost\<printerId>` — requiere que esa impresora esté compartida en
     // Windows bajo ese nombre exacto (ver README/instalación).
-    await execFileAsync('cmd', ['/c', 'copy', '/b', tmpFile, `\\\\localhost\\${printerId}`]);
+    await execFileAsync('cmd', ['/c', 'copy', '/b', tmpFile, `\\\\localhost\\${printerId}`], { timeout: USB_TIMEOUT_MS });
   } finally {
     await unlink(tmpFile).catch(() => {});
   }

@@ -16,9 +16,17 @@ import { agentFetch } from './apiClient.js';
 import { printJob } from './printEscPos.js';
 import { listPrinters } from './printers.js';
 import { sendToSerialPort, listSerialPorts } from './serial.js';
+import { withTimeout } from './timeout.js';
 
 const POLL_INTERVAL_MS = 5000;
 const HEARTBEAT_INTERVAL_MS = 60000;
+// Auditoría (2026-10-01): respaldo además de los timeouts propios de cada
+// camino (`printEscPos.js`/`serial.js`, 5-10s) — más generoso, para no pisarle
+// el timeout real a ninguno de ellos, pero garantiza que NINGÚN trabajo,
+// aunque un camino futuro se agregue sin su propio timeout, pueda congelar
+// este ciclo de sondeo entero (lo que antes dejaba estaciones "en línea" pero
+// con trabajos atascados para siempre — ver `timeout.js`).
+const JOB_TIMEOUT_MS = 20000;
 
 function log(...args) {
   console.log(`[${new Date().toISOString()}]`, ...args);
@@ -38,9 +46,17 @@ async function pollOnce(serverUrl, apiKey) {
       // viaja igual que cualquier otro documento por esa impresora.
       if (job.station.deviceKind === 'CASH_DRAWER') {
         if (!job.station.agentPrinterId) throw new Error('Este cajón todavía no tiene un puerto serial asignado en OSA.');
-        await sendToSerialPort(job.station.agentPrinterId, payload);
+        await withTimeout(
+          sendToSerialPort(job.station.agentPrinterId, payload),
+          JOB_TIMEOUT_MS,
+          `Tiempo de espera agotado abriendo el cajón "${job.station.name}".`
+        );
       } else {
-        await printJob(job.station, payload);
+        await withTimeout(
+          printJob(job.station, payload),
+          JOB_TIMEOUT_MS,
+          `Tiempo de espera agotado imprimiendo en "${job.station.name}".`
+        );
       }
       log(`✓ impreso — estación "${job.station.name}"`);
       await agentFetch(serverUrl, apiKey, `/api/print-agents/jobs/${job.id}/result`, {
