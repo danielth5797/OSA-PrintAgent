@@ -17,6 +17,7 @@ import { printJob } from './printEscPos.js';
 import { listPrinters } from './printers.js';
 import { sendToSerialPort, listSerialPorts } from './serial.js';
 import { withTimeout } from './timeout.js';
+import { AGENT_VERSION } from './version.js';
 
 const POLL_INTERVAL_MS = 5000;
 const HEARTBEAT_INTERVAL_MS = 60000;
@@ -85,7 +86,7 @@ async function heartbeatOnce(serverUrl, apiKey) {
 
 /** Corre para siempre (hasta Ctrl+C). `onTick` es un hook opcional para tests/verificación (recibe cuántos trabajos se procesaron en cada sondeo). */
 export function runAgent({ serverUrl, apiKey }, { onTick, signal } = {}) {
-  log(`Agente Local de OSA — conectado a ${serverUrl}`);
+  log(`Agente Local de OSA v${AGENT_VERSION} — conectado a ${serverUrl}`);
 
   let stopped = false;
   const stop = () => {

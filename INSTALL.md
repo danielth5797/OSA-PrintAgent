@@ -208,9 +208,26 @@ USB sin que el driver los "traduzca" mal, esa impresora tiene que estar
 2. Elegí la impresora térmica → **Propiedades de la impresora**.
 3. Pestaña **"Compartir"** → tildá **"Compartir esta impresora"** → ponele un
    nombre corto sin espacios (ej. `Cocina1`) → Aplicar.
-4. Ese nombre (`Cocina1` en el ejemplo) es lo que tenés que poner como
-   **"Impresora del agente"** al crear la estación USB en OSA — el
-   agente corre `copy /b <archivo> \\localhost\Cocina1` para imprimir.
+4. En OSA, al crear/editar la estación USB, elegí la impresora del
+   desplegable **"Impresora del agente"** — no hace falta escribir el nombre
+   a mano ni que coincida con lo que ves en "Impresoras y escáneres": el
+   agente reporta el nombre real del **recurso compartido** (`Cocina1` en
+   el ejemplo) aunque la impresora se llame distinto en Windows (ej. "Caja")
+   — si el id entre paréntesis difiere del nombre, es justamente ese el
+   valor que usa para imprimir (`copy /b <archivo> \\localhost\<ese id>`).
+   Caso real encontrado: una impresora llamada "Caja" en Windows compartida
+   como "XP-80C" — elegir "Caja" a ciegas del nombre visible habría usado un
+   recurso compartido que no existe.
+5. Si Windows igual rechaza la impresión con "no se encuentra el nombre de
+   red especificado" aunque el recurso ya aparezca bien en `net share`,
+   revisá que **"Uso compartido de archivos e impresoras"** esté activado
+   para el perfil de red actual — **Panel de control → Redes e Internet →
+   Centro de redes y recursos compartidos → Cambiar configuración de uso
+   compartido avanzado** — y que esté permitido en el Firewall de Windows
+   (**Permitir una aplicación a través del firewall** → "Uso compartido de
+   impresoras y archivos"). Es un interruptor aparte del checkbox de
+   "Compartir esta impresora" del paso 3, y viene apagado por defecto si la
+   red está marcada como "Pública".
 
 ## Paso 6 — Probar que imprime de verdad
 
@@ -293,7 +310,11 @@ node bin/osa-print-agent.js status
 ```
 
 Te dice si está pareado, si el servidor lo sigue reconociendo, cuándo lo vio
-por última vez, y qué impresoras detecta en esa PC ahora mismo.
+por última vez, y qué impresoras detecta en esa PC ahora mismo — incluido el
+`id` real de cada una (en Windows, el nombre del recurso compartido, que
+puede ser distinto al nombre visible de la impresora) y la **versión del
+agente instalada**, útil para confirmar que una PC ya tiene un fix
+determinado sin tener que adivinar.
 
 ---
 
@@ -303,7 +324,9 @@ por última vez, y qué impresoras detecta en esa PC ahora mismo.
 |---|---|
 | `status` dice "No se pudo contactar al servidor" | Sin internet, o la URL del servidor está mal escrita en el pareo. |
 | El agente corre pero las comandas nunca se imprimen | Revisá en OSA → Centro de Sincronización → Impresión que la estación tenga este agente asignado, y que tenga alguna categoría de menú asignada (si no, esa comanda nunca se generó). |
-| USB en Windows: `El sistema no puede encontrar la ruta especificada` | El nombre de "Impresora del agente" en OSA no coincide EXACTO con el nombre que le pusiste al compartir la impresora en Windows (Paso 5). |
+| USB en Windows: `El sistema no puede encontrar la ruta especificada` | El nombre de "Impresora del agente" en OSA no coincide EXACTO con el nombre que le pusiste al compartir la impresora en Windows (Paso 5). Desde la versión 0.2.0, el desplegable de OSA ya muestra el nombre del recurso compartido real — si viniste de una versión anterior, volvé a elegir la impresora del desplegable y guardá, aunque el texto se vea igual. |
+| USB en Windows: `No se encuentra el nombre de red especificado` (con el recurso ya visible en `net share`) | "Uso compartido de archivos e impresoras" apagado para el perfil de red actual, o bloqueado en el Firewall de Windows — ver el paso 5 de arriba. Es distinto del síntoma anterior: acá Windows sí encuentra la PC, pero el recurso compartido no se publica hacia la red (ni siquiera el loopback) porque ese interruptor está apagado. |
 | USB en Mac/Linux: `lp: No such destination` | La impresora no está agregada en el sistema — Preferencias del Sistema → Impresoras y escáneres, agregala primero ahí. |
 | El código de pareo dice "inválido o vencido" | Duró más de 15 minutos, o ya se usó una vez — generá uno nuevo desde OSA. |
 | Quiero reinstalar en otra PC | Simplemente repetí esta guía en la PC nueva con un código de pareo nuevo — desde OSA podés eliminar el agente viejo (Centro de Sincronización → Impresión → Agentes locales → ícono de basurero). |
+| Quiero reinstalar en la MISMA PC para actualizar a una versión nueva | Desinstalá primero (menú Inicio → "OSA Print Agent" → Desinstalar — esto además para el proceso corriendo, necesario porque el instalador no sabe reemplazar un `.exe` en uso) y después volvé a instalar con un código de pareo nuevo — el instalador no detecta "ya instalado, solo actualizar", siempre vuelve a pedir pareo. |

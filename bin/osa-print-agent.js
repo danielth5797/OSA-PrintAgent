@@ -17,6 +17,7 @@ import { loadConfig } from '../src/config.js';
 import { pair } from '../src/pair.js';
 import { runAgent } from '../src/agent.js';
 import { status } from '../src/status.js';
+import { AGENT_VERSION } from '../src/version.js';
 
 function arg(flag) {
   const i = process.argv.indexOf(flag);
@@ -61,6 +62,7 @@ function cmdRun() {
 
 async function cmdStatus() {
   const result = await status();
+  console.log(`Versión del agente: ${result.version}`);
   if (!result.paired) {
     console.log(`✗ ${result.message}`);
     process.exitCode = 1;
@@ -74,10 +76,16 @@ async function cmdStatus() {
   } else {
     console.log(`✗ No se pudo contactar al servidor: ${result.error}`);
   }
+  // El `id` se muestra siempre explícito, no solo cuando difiere del
+  // nombre — en Windows el nombre visible de la impresora ("Caja") y el id
+  // real que usa el agente para imprimir (el nombre del recurso compartido,
+  // "XP-80C") pueden ser completamente distintos (ver printers.js), y esa
+  // diferencia es exactamente lo que hay que poder ver acá para diagnosticar
+  // un problema de impresión sin adivinar.
   console.log(`Impresoras detectadas en esta PC: ${result.localPrinters.length}`);
-  for (const p of result.localPrinters) console.log(`  - ${p.name}`);
+  for (const p of result.localPrinters) console.log(`  - ${p.name}  [id usado para imprimir: ${p.id}]`);
   console.log(`Puertos seriales detectados en esta PC: ${result.localSerialPorts.length}`);
-  for (const p of result.localSerialPorts) console.log(`  - ${p.name}`);
+  for (const p of result.localSerialPorts) console.log(`  - ${p.name}  [id: ${p.id}]`);
 }
 
 // IIFE en vez de top-level await: el empaquetado como ejecutable único
@@ -92,10 +100,14 @@ async function cmdStatus() {
     cmdRun();
   } else if (command === 'status') {
     await cmdStatus();
+  } else if (command === '--version' || command === '-v' || command === 'version') {
+    console.log(AGENT_VERSION);
   } else {
+    console.log(`Agente Local de OSA v${AGENT_VERSION}`);
     console.log('Uso:');
     console.log('  osa-print-agent pair --server <url> --code <código>');
     console.log('  osa-print-agent run');
     console.log('  osa-print-agent status');
+    console.log('  osa-print-agent --version');
   }
 })();
