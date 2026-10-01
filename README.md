@@ -109,7 +109,7 @@ de fallar la suite entera.
   Solo queda sin verificar el último tramo: **si una impresora térmica real
   interpreta/renderiza correctamente estos bytes** — eso sigue necesitando
   hardware real, nada de software puede confirmarlo por su cuenta.
-- ⚠️➜✅ Impresión USB en **Windows** (`copy /b <archivo> \\localhost\<recurso
+- ✅ Impresión USB en **Windows** (`copy /b <archivo> \\localhost\<recurso
   compartido>`) — **primera verificación real en campo (2026-10-01)**, contra
   una impresora térmica XP-80C real conectada por USB. **Bug real encontrado
   y corregido**: `listPrintersWindows()` reportaba `Get-Printer`'s `Name`
@@ -132,11 +132,11 @@ de fallar la suite entera.
   compartido y visible en `net share`, Windows puede seguir rechazando
   `\\localhost\<recurso>` si "Uso compartido de archivos e impresoras" está
   apagado a nivel de perfil de red o de firewall — documentado como paso
-  explícito en `INSTALL.md`. **Pendiente de confirmar**: el último tramo —
-  que la impresora térmica real reciba e imprima los bytes ESC/POS
-  correctamente de punta a punta a través de OSA (no solo el `copy` manual,
-  que sí se confirmó exitoso) — queda para la próxima verificación en esa
-  misma PC.
+  explícito en `INSTALL.md`. **Confirmado de punta a punta (2026-10-01)**:
+  con el agente actualizado reinstalado y la estación reapuntada al `id`
+  correcto, una comanda real impresa desde OSA llegó e imprimió
+  correctamente en la XP-80C a través del camino completo (OSA → agente →
+  `copy /b` → impresora), no solo el `copy` manual aislado.
 - ✅ Diagnóstico local (`status`) — pareo, última vez visto por el servidor,
   impresoras detectadas — verificado en vivo (con y sin conexión al
   servidor). Sin bandeja del sistema/página HTTP todavía — es el primer
