@@ -19,8 +19,7 @@ puente hacia todas las impresoras de ese local.
   sucursal? Si no, hacelo primero desde **Centro de Sincronización → pestaña
   "Impresión"** — el agente necesita algo a qué imprimir.
 - Necesitás que un administrador de la sucursal (rol Administrador o Gerente)
-  tenga la sesión abierta en OSA para generar el código de pareo del
-  paso 3.
+  tenga la sesión abierta en OSA para generar el código de pareo.
 - ⚠️ **Estado real de esta versión** (para no llevarte una sorpresa): la
   impresión de red y USB en macOS/Linux ya se probaron en vivo contra el
   protocolo real; la impresión USB en **Windows es código nuevo, sin
@@ -29,6 +28,104 @@ puente hacia todas las impresoras de ese local.
   falta" para el detalle completo.
 
 ---
+
+## Instalación de un clic (recomendado)
+
+Desde RF-103 Fase 4 hay un ejecutable único por sistema operativo — **no hace
+falta instalar Node** en la PC del restaurante.
+
+**Descarga directa desde OSA** (la forma normal): entrá a OSA-Web → Centro de
+Sincronización → pestaña "Impresión" — junto a "Vincular agente" hay dos
+links, "macOS" y "Windows", que bajan el instalador real
+(`GET /downloads/print-agent/mac.zip` / `.../windows.exe` en la API). Sin
+login especial — el link es público, el pareo real lo sigue exigiendo el
+código de un solo uso.
+
+Si esos links no están disponibles todavía en tu despliegue (nadie publicó
+los binarios ahí, ver "Publicarlos como descarga" más abajo), alguien con
+acceso a este repo los genera a mano (`npm run build:dist`) y te pasa el
+`.zip`/`.exe` por otro medio.
+
+### macOS
+
+1. Descargá `OSA-Print-Agent-Mac.zip` y descomprimilo (doble clic en
+   Finder) — tienen que quedar juntos los dos archivos que trae adentro:
+   `osa-print-agent-macos` + `Instalar Agente OSA.command`.
+2. Generá el código de pareo en OSA (Centro de Sincronización → "Impresión"
+   → "Agentes locales" → "Vincular agente") — lo vas a necesitar en el
+   siguiente paso.
+3. Doble clic en **"Instalar Agente OSA.command"**.
+   - Como todavía no hay certificado de Apple Developer, la primera vez
+     Gatekeeper lo va a marcar como "de un desarrollador no identificado" —
+     click derecho → **Abrir** (una sola vez; los siguientes dobles clics ya
+     funcionan directo).
+4. Pegá la URL del servidor y el código de pareo en los dos diálogos que
+   aparecen.
+5. Listo — queda pareado, corriendo, y arranca solo la próxima vez que
+   inicies sesión (LaunchAgent real en `~/Library/LaunchAgents/`).
+
+### Windows
+
+1. Descargá `OSA-Print-Agent-Setup.exe` en la PC del restaurante.
+2. Generá el código de pareo en OSA (mismo camino que arriba).
+3. Doble clic en el instalador.
+   - Sin certificado de firma de código, Windows SmartScreen probablemente
+     avise "Se impidió que se iniciara una aplicación no reconocida" — **Más
+     información → Ejecutar de todas formas**.
+4. Pegá la URL del servidor y el código de pareo cuando el instalador los
+   pida.
+5. Listo — se instala en `%LOCALAPPDATA%\OSAPrintAgent` (sin pedir
+   permisos de administrador), arranca ya mismo, y queda configurado para
+   arrancar solo en cada inicio de sesión. El menú de inicio gana un grupo
+   "OSA Print Agent" con accesos directos a "Ver estado" y "Desinstalar".
+
+⚠️ **El instalador de Windows nunca se corrió en una PC Windows real** — se
+generó y se verificó que compila a un `.exe` válido, pero todo el flujo de
+instalación en sí (diálogo de texto, pareo, acceso directo de inicio) queda
+sin probar en vivo hasta la primera instalación real. El de macOS sí se
+verificó de punta a punta (pareo real contra el servidor + LaunchAgent real
+cargado y confirmado desde OSA).
+
+### Compilar los instaladores (para quien mantiene el repo)
+
+```
+npm install
+npm run build:dist
+```
+
+Genera `dist/OSA-Print-Agent-Mac.zip` y
+`dist/windows/OSA-Print-Agent-Setup.exe`. Necesita Node ≥20 instalado (para
+generar el blob de Node SEA) y, para el `.exe` de Windows,
+[NSIS](https://nsis.sourceforge.net/) (`brew install makensis` en macOS) —
+sin `makensis` instalado, el script salta ese paso con un aviso en vez de
+fallar. Ambos ejecutables se descargan del build oficial de nodejs.org (no
+del `node` local) y quedan empaquetados con Node embebido adentro — la PC
+destino no necesita tener Node instalado. Detalle técnico completo en
+`scripts/`.
+
+**Publicarlos como descarga desde OSA** (para que los links de "Impresión"
+funcionen — ver `OSA-API/src/index.ts`, `GET /downloads/print-agent/...`,
+sirve el directorio `OSA-API/print-agent-downloads/` fuera de git, montado
+como volumen):
+
+```
+mkdir -p ../OSA-API/print-agent-downloads
+cp dist/OSA-Print-Agent-Mac.zip ../OSA-API/print-agent-downloads/mac.zip
+cp dist/windows/OSA-Print-Agent-Setup.exe ../OSA-API/print-agent-downloads/windows.exe
+cd ../OSA-API && docker compose up -d --build
+```
+
+No hace falta reconstruir la imagen de la API solo por esto en despliegues
+donde el volumen ya existe — con el contenedor corriendo, basta con
+reemplazar los dos archivos en `print-agent-downloads/` para publicar una
+versión nueva del agente.
+
+---
+
+## Instalación manual (alternativa — útil si vas a tocar el código del agente)
+
+Si preferís correrlo desde el código fuente (con Node instalado en esa PC)
+en vez del instalador de un clic:
 
 ## Paso 1 — Instalar Node.js en la PC del restaurante
 

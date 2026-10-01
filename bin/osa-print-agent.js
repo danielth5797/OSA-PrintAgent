@@ -80,16 +80,22 @@ async function cmdStatus() {
   for (const p of result.localSerialPorts) console.log(`  - ${p.name}`);
 }
 
-const command = process.argv[2];
-if (command === 'pair') {
-  await cmdPair();
-} else if (command === 'run') {
-  cmdRun();
-} else if (command === 'status') {
-  await cmdStatus();
-} else {
-  console.log('Uso:');
-  console.log('  osa-print-agent pair --server <url> --code <código>');
-  console.log('  osa-print-agent run');
-  console.log('  osa-print-agent status');
-}
+// IIFE en vez de top-level await: el empaquetado como ejecutable único
+// (Node SEA, ver `scripts/build-sea-blob.mjs`) bundlea este archivo a
+// CommonJS, que no admite top-level await — el resto del comportamiento
+// (incluido `node bin/osa-print-agent.js ...` directo) es idéntico.
+(async () => {
+  const command = process.argv[2];
+  if (command === 'pair') {
+    await cmdPair();
+  } else if (command === 'run') {
+    cmdRun();
+  } else if (command === 'status') {
+    await cmdStatus();
+  } else {
+    console.log('Uso:');
+    console.log('  osa-print-agent pair --server <url> --code <código>');
+    console.log('  osa-print-agent run');
+    console.log('  osa-print-agent status');
+  }
+})();

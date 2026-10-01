@@ -1,2 +1,6 @@
 node_modules/
 *.log
+# Empaquetado (RF-103 Fase 4) — binarios de ~100MB+, se regeneran con
+# `npm run build:dist` (incluye el `node` oficial descargado por plataforma).
+build/
+dist/

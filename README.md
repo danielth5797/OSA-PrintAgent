@@ -45,11 +45,21 @@ Dos escenarios, ambos cubiertos:
 
 ## Instalación
 
-Ver **[`INSTALL.md`](./INSTALL.md)** — guía paso a paso completa (Node,
-pareo, compartir la impresora en Windows si aplica, arranque automático por
-sistema operativo, verificación con `status`, solución de problemas).
+Ver **[`INSTALL.md`](./INSTALL.md)** — guía paso a paso completa (instalador
+de un clic por plataforma, pareo, compartir la impresora en Windows si
+aplica, arranque automático, verificación con `status`, solución de
+problemas).
 
-Resumen rápido para quien ya sabe lo que hace:
+Para el restaurante, lo simple (RF-103 Fase 4 — no necesita Node instalado):
+
+```bash
+npm run build:dist   # arma dist/mac/ y dist/windows/OSA-Print-Agent-Setup.exe
+```
+
+Y después, un solo doble clic en la PC del restaurante — ver
+"Instalación de un clic" en `INSTALL.md`.
+
+Resumen rápido desde el código fuente (con Node instalado, para desarrollo):
 
 ```bash
 npm install                                                          # sin dependencias externas reales
@@ -115,8 +125,38 @@ de fallar la suite entera.
   reiniciar sesión/la PC, fuera de lo que se pudo probar en esta sesión) —
   la sintaxis de cada plantilla es estándar y correcta, pero es la primera
   vez que se instalan de verdad.
-- ❌ Sin empaquetar como ejecutable único (`pkg`/Node SEA) — hoy se corre
-  desde el código fuente con Node instalado. Sigue pendiente.
+- ✅ **RF-103 Fase 4 (2026-09-30) — empaquetado como ejecutable único +
+  instaladores de un clic.** Node SEA (nativo de Node 20+, sin dependencia
+  de runtime nueva — `esbuild`/`postject` son solo herramientas de build,
+  no viajan en el ejecutable final): `scripts/build-sea-blob.mjs` bundlea
+  `bin/osa-print-agent.js` a un único CJS y genera el blob; `build-mac.sh`
+  lo inyecta sobre el `node` **oficial** de nodejs.org (⚠️ hallazgo real: el
+  `node` de Homebrew no sirve de base, le falta el "fuse" de SEA que
+  `postject` necesita para ubicar dónde inyectar — confirmado con `strings`
+  contra ambos binarios) y lo firma ad-hoc; `build-win.sh` hace la misma
+  inyección de forma **cruzada** desde macOS (postject edita directo las
+  secciones de recursos del PE, no necesita ejecutar el binario). Dos
+  instaladores: `installer/macos/Instalar Agente OSA.command` (diálogos
+  nativos de AppleScript, copia el binario a
+  `~/Library/Application Support/OSAPrintAgent/`, parea de verdad, escribe y
+  carga un LaunchAgent real) e `installer/windows/installer.nsi` (NSIS,
+  `RequestExecutionLevel user` — cero UAC, instala en
+  `%LOCALAPPDATA%\OSAPrintAgent`, página propia con `nsDialogs` para pedir
+  URL+código, acceso directo de inicio apuntando a un `.vbs` que lo corre
+  oculto sin ventana de consola). `npm run build:dist` arma ambas carpetas
+  de distribución. **Verificado en vivo de punta a punta el instalador de
+  macOS**: pareo real contra el backend local (código de pareo real generado
+  vía `POST /api/print-agents/pair`, canjeado por el binario empaquetado),
+  LaunchAgent real cargado en `launchctl` y confirmado corriendo +
+  reportando heartbeat real al servidor (`GET /api/print-agents/:id` con
+  `lastSeenAt` actualizado), todo limpiado después (agente borrado de la
+  BD, LaunchAgent descargado). El `.exe` de Windows **se compiló y se
+  verificó como un PE32+ / instalador NSIS estructuralmente válido, pero
+  nunca se corrió en una PC Windows real** — ni el `.exe` del agente en sí
+  (mismo estado que el resto de USB/Windows de esta lista) ni el propio
+  instalador. Sin firma de código real en ninguna de las dos plataformas —
+  Gatekeeper/SmartScreen van a avisar la primera vez (documentado en
+  `INSTALL.md`), hace falta un certificado pago para que eso desaparezca.
 - ✅ Alerta de "estación sin conexión" en el Centro de Notificaciones de
   OSA (`PRINTER_STATION_OFFLINE`, barrido perezoso cada 10 min sin
   respuesta) — verificada en vivo con `curl` (disparo real + dedup contra
