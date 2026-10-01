@@ -9,13 +9,19 @@
 // real donde se inyecta (ver build-mac.sh / build-win.sh).
 import { build } from 'esbuild';
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const buildDir = join(root, 'build');
 mkdirSync(buildDir, { recursive: true });
+
+// Leído acá (en el script de build, con Node completo y acceso normal al
+// disco) e inyectado como literal en el bundle vía `define` — el .exe final
+// no lleva package.json consigo, así que `src/version.js` no puede leerlo en
+// runtime una vez instalado.
+const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
 
 await build({
   entryPoints: [join(root, 'bin/osa-print-agent.js')],
@@ -28,6 +34,7 @@ await build({
   format: 'cjs',
   target: 'node20',
   outfile: join(buildDir, 'agent.bundle.cjs'),
+  define: { __AGENT_VERSION__: JSON.stringify(pkg.version) },
   // Node SEA no resuelve imports dinámicos fuera del blob — todo tiene que
   // quedar en este único archivo.
 });

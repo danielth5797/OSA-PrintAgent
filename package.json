@@ -1,6 +1,6 @@
 {
   "name": "osa-print-agent",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Agente Local de OSA — puente entre la nube y las impresoras físicas de un restaurante (RF-103 Fase 2).",
   "type": "module",
   "bin": {

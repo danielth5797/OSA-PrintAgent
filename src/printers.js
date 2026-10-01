@@ -40,23 +40,44 @@ async function listPrintersUnix() {
 
 async function listPrintersWindows() {
   try {
-    // `-ExpandProperty Name`: una impresora por línea, sin encabezado ni ruido.
+    // Bug real encontrado en campo (2026-10-01): el nombre de la impresora en
+    // Windows (`Name`, ej. "Caja") NO es el mismo valor que hace falta para
+    // `copy /b archivo \\localhost\<nombre>` en printEscPos.js — ese comando
+    // necesita el nombre del RECURSO COMPARTIDO (`ShareName`, ej. "XP-80C"),
+    // que Windows suele autogenerar distinto al nombre de la impresora al
+    // compartirla. Reportar `Name` como si fuera el id llevaba a elegir una
+    // impresora "válida" en OSA que en realidad apuntaba a un recurso
+    // compartido inexistente (`\\localhost\Caja`) — Windows devuelve
+    // "no se encuentra el nombre de red especificado" (error 67) aunque la
+    // impresora exista y esté bien, porque el recurso con ESE nombre nunca
+    // existió. Filtramos a solo las compartidas (`Shared`) porque una
+    // impresora no compartida no puede funcionar por este camino de todos
+    // modos — mejor no ofrecerla que dejar elegir algo que va a fallar igual.
     const { stdout } = await execFileAsync('powershell', [
       '-NoProfile',
       '-Command',
-      'Get-Printer | Select-Object -ExpandProperty Name',
+      'Get-Printer | Where-Object { $_.Shared } | Select-Object Name, ShareName | ConvertTo-Json -Compress',
     ]);
-    return stdout
-      .split(/\r?\n/)
-      .map((l) => l.trim())
-      .filter(Boolean)
-      .map((name) => ({ id: name, name }));
+    const trimmed = stdout.trim();
+    if (!trimmed) return [];
+    const parsed = JSON.parse(trimmed);
+    // `ConvertTo-Json` devuelve un objeto solo (no un arreglo) cuando hay una única impresora compartida.
+    const rows = Array.isArray(parsed) ? parsed : [parsed];
+    return rows
+      .filter((r) => r && r.ShareName)
+      .map((r) => ({ id: r.ShareName, name: r.Name }));
   } catch {
     return [];
   }
 }
 
-/** `[{id, name}]` — el `id` es el mismo nombre de cola/impresora que usa el sistema operativo (no hay un id separado en ningún lado). */
+/**
+ * `[{id, name}]` — en macOS/Linux, `id` es el mismo nombre de cola de CUPS
+ * que `name`. En Windows, `id` es el nombre del RECURSO COMPARTIDO (lo que
+ * de verdad usa `\\localhost\<id>` al imprimir) mientras que `name` es el
+ * nombre visible de la impresora en Windows — pueden ser distintos a
+ * propósito, ver el comentario real arriba.
+ */
 export async function listPrinters() {
   if (platform() === 'darwin' || platform() === 'linux') return listPrintersUnix();
   if (platform() === 'win32') return listPrintersWindows();

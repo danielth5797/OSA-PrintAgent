@@ -109,16 +109,44 @@ de fallar la suite entera.
   Solo queda sin verificar el último tramo: **si una impresora térmica real
   interpreta/renderiza correctamente estos bytes** — eso sigue necesitando
   hardware real, nada de software puede confirmarlo por su cuenta.
-- ⚠️ Impresión USB en **Windows** (`copy /b <archivo> \\localhost\<impresora
-  compartida>`) y descubrimiento de impresoras (`Get-Printer` de
-  PowerShell) — código nuevo de Fase 3, **sin ninguna verificación**, ni
-  siquiera de la falla controlada — no hubo PC Windows disponible en esta
-  sesión. Es la técnica estándar que usa la mayoría del software de punto de
-  venta en Windows, pero es lo primero a probar con una máquina real.
+- ⚠️➜✅ Impresión USB en **Windows** (`copy /b <archivo> \\localhost\<recurso
+  compartido>`) — **primera verificación real en campo (2026-10-01)**, contra
+  una impresora térmica XP-80C real conectada por USB. **Bug real encontrado
+  y corregido**: `listPrintersWindows()` reportaba `Get-Printer`'s `Name`
+  (el nombre visible de la impresora en Windows, ej. "Caja") como si fuera
+  el id a usar para imprimir — pero `copy /b ... \\localhost\<id>` necesita
+  el nombre del **recurso compartido** (`ShareName`, ej. "XP-80C"), que
+  Windows deja configurar distinto al nombre de la impresora al compartirla
+  y en este caso real eran dos valores distintos. El agente ofrecía "Caja"
+  en el selector de OSA, que apuntaba a un recurso inexistente —
+  Windows devuelve "no se encuentra el nombre de red especificado" (error
+  67) aunque la impresora esté bien, porque el recurso con ESE nombre nunca
+  existió. Corregido: `listPrintersWindows()` ahora filtra a solo impresoras
+  realmente compartidas (`Where-Object Shared`) y usa `ShareName` como `id`
+  (lo que de verdad hace falta para imprimir) mientras sigue mostrando
+  `Name` como texto visible — tanto en `status` como en el selector de OSA
+  (ver `OSA-Web`, `PrintingSection.tsx`), que ahora muestra el id real entre
+  paréntesis cuando difiere del nombre, así se puede verificar desde el
+  navegador sin entrar a la PC. El camino de red/firewall de Windows
+  también se confirmó real en este mismo caso: aun con el recurso bien
+  compartido y visible en `net share`, Windows puede seguir rechazando
+  `\\localhost\<recurso>` si "Uso compartido de archivos e impresoras" está
+  apagado a nivel de perfil de red o de firewall — documentado como paso
+  explícito en `INSTALL.md`. **Pendiente de confirmar**: el último tramo —
+  que la impresora térmica real reciba e imprima los bytes ESC/POS
+  correctamente de punta a punta a través de OSA (no solo el `copy` manual,
+  que sí se confirmó exitoso) — queda para la próxima verificación en esa
+  misma PC.
 - ✅ Diagnóstico local (`status`) — pareo, última vez visto por el servidor,
   impresoras detectadas — verificado en vivo (con y sin conexión al
   servidor). Sin bandeja del sistema/página HTTP todavía — es el primer
-  escalón hacia eso, no el reemplazo completo.
+  escalón hacia eso, no el reemplazo completo. **(2026-10-01)** gana número
+  de versión (`osa-print-agent --version`, también al inicio de `status` y
+  del log de `run` — antes no había forma de confirmar si una PC ya corría
+  el build con un fix sin reinstalar y comparar a ciegas) y muestra el `id`
+  real de cada impresora/puerto serial detectado, no solo su nombre — en
+  Windows ambos pueden ser distintos (ver el hallazgo de arriba), y sin esto
+  no había forma de diagnosticar esa diferencia sin leer el código.
 - ✅ Plantillas de arranque automático por sistema operativo (`install/`) —
   Windows (carpeta de inicio), macOS (`launchd`), Linux (`systemd`, servicio
   de usuario). **No verificadas en vivo** (instalarlas de verdad requiere
